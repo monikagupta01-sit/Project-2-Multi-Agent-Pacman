@@ -1,0 +1,41 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches: [ master ]  # Change if your default branch is not `main`
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3  # Checkout the code
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'  # Update to the version you are using
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # Make sure your dependencies are in this file
+
+      - name: Run tests and generate coverage report
+        run: |
+          coverage run -m pytest  # Run tests with coverage
+          coverage xml  # Generate coverage.xml file
+
+      - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # GitHub secret for SonarCloud token
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=monikagupta01-sit_Project-2-Multi-Agent-Pacman \
+            -Dsonar.organization=monikagupta01-sit \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.python.coverage.reportPaths=coverage.xml  # Path to coverage report
